@@ -22,8 +22,7 @@ const Categories = () => {
         align="center"
         fontSize={"2rem"}
         fontWeight="bold"
-        component="h2"
-      >
+        component="h2">
         Explore Top Categories
       </Typography>
 

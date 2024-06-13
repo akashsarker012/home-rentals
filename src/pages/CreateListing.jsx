@@ -1,24 +1,27 @@
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import axios from "axios";
 import {
   Box,
   Button,
   Container,
   Grid,
   IconButton,
-  Input,
   TextField,
-  TextareaAutosize,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
-import Navbar from "../components/Navbar";
 import { categories, facilities, types } from "../style/Data";
-import { experimentalStyled as styled } from "@mui/material/styles";
+import {
+  AttachMoney as AttachMoneyIcon,
+  AddCircleOutline as AddCircleOutlineIcon,
+  RemoveCircleOutline as RemoveCircleOutlineIcon,
+  CloudUpload as CloudUploadIcon,
+} from "@mui/icons-material";
 import Paper from "@mui/material/Paper";
-import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { experimentalStyled as styled } from "@mui/material/styles";
 import { TextareaAutosize as BaseTextareaAutosize } from "@mui/base/TextareaAutosize";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import Navbar from './../components/Navbar';
+
 const blue = {
   100: "#DAECFF",
   200: "#b6daff",
@@ -53,7 +56,9 @@ const Textarea = styled(BaseTextareaAutosize)(
   border-radius: 8px;
   color: ${theme.palette.mode === "dark" ? grey[300] : grey[900]};
   background: transparent;
-  border: 1px solid ${theme.palette.mode === "dark" ? grey[700] : grey[400]};
+  border: 1px solid ${
+    theme.palette.mode === "dark" ? grey[700] : grey[400]
+  };
   box-shadow: 0px 2px 2px ${
     theme.palette.mode === "dark" ? grey[900] : grey[50]
   };
@@ -90,10 +95,6 @@ const VisuallyHiddenInput = styled("input")({
 export default function CreateListing() {
   const [category, setCategory] = useState("");
   const [type, setType] = useState("");
-  console.log(type);
-  const [amenities, setAmenities] = useState([]);
-
-  // const [formLocation]
   const [formLocation, setFormLocation] = useState({
     streetAddress: "",
     aptSuite: "",
@@ -101,6 +102,20 @@ export default function CreateListing() {
     province: "",
     country: "",
   });
+
+  const [beds, setBeds] = useState(1);
+  const [bathrooms, setBathrooms] = useState(1);
+  const [bedrooms, setBedrooms] = useState(1);
+  const [guests, setGuests] = useState(1);
+  const [amenities, setAmenities] = useState([]);
+  const [formDescription, setFormDescription] = useState({
+    title: "",
+    description: "",
+    highlight: "",
+    highlightDesc: "",
+    price: "",
+  });
+  const creatorId = useSelector((state) => state.user._id);
 
   const handleChangeLocation = (e) => {
     const { name, value } = e.target;
@@ -110,12 +125,70 @@ export default function CreateListing() {
     });
   };
 
-  // console.log(formLocation, 'formLocation');
-//   const [formLocation]
-  // const [guestCount]
+  const handleSelectAmenities = (facility) => {
+    if (amenities.includes(facility)) {
+      setAmenities((prevAmenities) =>
+        prevAmenities.filter((option) => option !== facility)
+      );
+    } else {
+      setAmenities((prev) => [...prev, facility]);
+    }
+  };
+
   const handleImage = (event) => {
     console.log(event.target.files);
   };
+
+  const handleChangeDescription = (e) => {
+    const { name, value } = e.target;
+    setFormDescription({
+      ...formDescription,
+      [name]: value,
+    });
+  };
+  
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    try {
+  
+      const listingForm = new FormData();
+      listingForm.append("creator", creatorId);
+      listingForm.append("category", category);
+      listingForm.append("type", type);
+      listingForm.append("streetAddress", formLocation.streetAddress);
+      listingForm.append("aptSuite", formLocation.aptSuite);
+      listingForm.append("city", formLocation.city);
+      listingForm.append("province", formLocation.province);
+      listingForm.append("country", formLocation.country);
+      listingForm.append("guestCount", guests);
+      listingForm.append("bedroomCount", bedrooms);
+      listingForm.append("bedCount", beds);
+      listingForm.append("bathroomCount", bathrooms);
+      listingForm.append("amenities", amenities);
+      listingForm.append("title", formDescription.title);
+      listingForm.append("description", formDescription.description);
+      listingForm.append("highlight", formDescription.highlight);
+      listingForm.append("highlightDesc", formDescription.highlightDesc); 
+      listingForm.append("price", formDescription.price);
+
+  
+      const response = await fetch("http://localhost:8000/api/v1/listing/create", {
+        method: "POST",
+        body: listingForm,
+      });
+
+      console.log("Response:", response);
+  
+    } catch (err) {
+      console.log("Publish Listing failed", err);
+    }
+  };
+  
+
+
+  
   return (
     <>
       <Navbar />
@@ -129,7 +202,7 @@ export default function CreateListing() {
         >
           Publish Your Place
         </Typography>
-        <form action="">
+        <form  >
           <Typography
             variant="h2"
             py={3}
@@ -190,9 +263,9 @@ export default function CreateListing() {
                         sx={{
                           ...(type === item.name
                             ? {
-                                backgroundColor: "primary.main",
-                                color: "white",
-                              }
+                              backgroundColor: "primary.main",
+                              color: "white",
+                            }
                             : {}),
                           display: "flex",
                           alignItems: "center",
@@ -258,7 +331,7 @@ export default function CreateListing() {
                     fullWidth
                     name="streetAddress"
                     value={formLocation.streetAddress}
-                    onChange={ handleChangeLocation}
+                    onChange={handleChangeLocation}
                     label="Street Address"
                     id="fullWidth"
                   />
@@ -275,7 +348,7 @@ export default function CreateListing() {
                   <TextField
                     style={{ width: "60%" }}
                     name="aptSuite"
-                    onChange={ handleChangeLocation}
+                    onChange={handleChangeLocation}
                     value={formLocation.aptSuite}
                     label="Apt, Suite, etc. (if applicable)"
                     id="fullWidth"
@@ -287,7 +360,7 @@ export default function CreateListing() {
                   </Typography>
                   <TextField
                     name="city"
-                    onChange={ handleChangeLocation}
+                    onChange={handleChangeLocation}
                     value={formLocation.city}
                     style={{ width: "60%" }}
                     label="City"
@@ -300,7 +373,7 @@ export default function CreateListing() {
                   </Typography>
                   <TextField
                     name="province"
-                    onChange={ handleChangeLocation}
+                    onChange={handleChangeLocation}
                     value={formLocation.province}
                     style={{ width: "60%" }}
                     label="Province"
@@ -313,7 +386,7 @@ export default function CreateListing() {
                   </Typography>
                   <TextField
                     name="country"
-                    onChange={ handleChangeLocation}
+                    onChange={handleChangeLocation}
                     value={formLocation.country}
                     style={{ width: "60%" }}
                     label="Country"
@@ -342,22 +415,20 @@ export default function CreateListing() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                      }}
-                    >
+                      }}>
                       <p>Guests</p>
                       <>
                         <RemoveCircleOutlineIcon
+                          onClick={() => { guests > 1 && setGuests(guests - 1) }}
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
                             "&:hover": { color: "#FF385C" },
                           }}
                         />
-                        <p>1</p>
+                        <p>{guests}</p>
                         <AddCircleOutlineIcon
-                          // onClick={() => {
-                          //   setGuestCount(guestCount + 1);
-                          // }}
+                          onClick={() => { setGuests(guests + 1); }}
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
@@ -378,17 +449,18 @@ export default function CreateListing() {
                       <p>Bedrooms</p>
                       <>
                         <RemoveCircleOutlineIcon
+                          onClick={() => { bedrooms > 1 && setBedrooms(bedrooms - 1) }}
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
                             "&:hover": { color: "#FF385C" },
                           }}
                         />
-                        <p>1</p>
+                        <p>{bedrooms}</p>
                         <AddCircleOutlineIcon
-                          // onClick={() => {
-                          //   setGuestCount(guestCount + 1);
-                          // }}
+                          onClick={() => {
+                            setBedrooms(bedrooms + 1);
+                          }}
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
@@ -409,17 +481,19 @@ export default function CreateListing() {
                       <p>Beds</p>
                       <>
                         <RemoveCircleOutlineIcon
+                          onClick={() => { beds > 1 && setBeds(beds - 1) }}
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
                             "&:hover": { color: "#FF385C" },
                           }}
                         />
-                        <p>1</p>
+                        <p>{beds}</p>
                         <AddCircleOutlineIcon
-                          // onClick={() => {
-                          //   setGuestCount(guestCount + 1);
-                          // }}
+                          onClick={() => {
+                            setBeds(beds + 1);
+                          }}
+
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
@@ -440,17 +514,18 @@ export default function CreateListing() {
                       <p>Bathrooms</p>
                       <>
                         <RemoveCircleOutlineIcon
+                          onClick={() => { bathrooms > 1 && setBathrooms(bathrooms - 1) }}
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
                             "&:hover": { color: "#FF385C" },
                           }}
                         />
-                        <p>1</p>
+                        <p>{bathrooms}</p>
                         <AddCircleOutlineIcon
-                          // onClick={() => {
-                          //   setGuestCount(guestCount + 1);
-                          // }}
+                          onClick={() => {
+                            setBathrooms(bathrooms + 1);
+                          }}
                           sx={{
                             fontSize: "25px",
                             cursor: "pointer",
@@ -474,30 +549,30 @@ export default function CreateListing() {
               backgroundColor: "#00000009",
               borderRadius: "10px",
               padding: "20px",
-            }}
-          >
+            }}>
             <Typography
               variant="h3"
               py={3}
               fontSize={"1.5rem"}
               fontWeight="bold"
-              component="h2"
-            >
+              component="h2">
               Step 2: Make your place stand out
             </Typography>
 
             <Box sx={{ width: "100%", py: 3, backgroundColor: "0.0.0.5" }}>
               <Grid container spacing={2}>
                 {facilities?.map((item, index) => (
-                  <Grid item xs={6} md={3} sm={6} key={index}>
-                    <Item key={index}>
+                  <Grid  item xs={6} md={3} sm={6} key={index}>
+                  <Item sx={ amenities.includes(item.name) ? { backgroundColor: "primary.main", color: "white" } : ""}
+                      key={index}
+                      onClick={() => handleSelectAmenities(item.name)}>
+
                       <IconButton
                         size="medium"
                         aria-label="account of current user"
                         aria-controls="menu-appbar"
                         aria-haspopup="true"
-                        color="inherit"
-                      >
+                        color="inherit">
                         {item.icon}
                       </IconButton>
                       <p>{item.name}</p>
@@ -524,8 +599,7 @@ export default function CreateListing() {
                 variant="contained"
                 tabIndex={-1}
                 onChange={handleImage}
-                startIcon={<CloudUploadIcon />}
-              >
+                startIcon={<CloudUploadIcon />}>
                 <input hidden type="file" multiple value="" />
                 Upload file
                 <VisuallyHiddenInput type="file" />
@@ -557,6 +631,9 @@ export default function CreateListing() {
                     fullWidth
                     label="Title"
                     id="fullWidth"
+                    name="title"
+                    onChange={handleChangeDescription}
+                    value={formDescription.title}
                   />
                 </>
                 <>
@@ -569,6 +646,9 @@ export default function CreateListing() {
                     Description
                   </Typography>
                   <Textarea
+                  onChange={handleChangeDescription}
+                  value={formDescription.description}
+                  name="description"
                     maxRows={4}
                     aria-label="maximum height"
                     defaultValue=""
@@ -586,6 +666,9 @@ export default function CreateListing() {
                     Highlight
                   </Typography>
                   <TextField
+                    onChange={handleChangeDescription}
+                    value={formDescription.highlight}
+                    name="highlight"
                     style={{ width: "80%" }}
                     fullWidth
                     label="Highlight"
@@ -602,6 +685,10 @@ export default function CreateListing() {
                     Highlight details
                   </Typography>
                   <TextField
+                  onChange={handleChangeDescription}
+                  value={formDescription.highlightDesc
+                  }
+                    name="highlightDesc"
                     style={{ width: "80%" }}
                     fullWidth
                     label="Highlight details"
@@ -619,6 +706,9 @@ export default function CreateListing() {
                   </Typography>
                   <AttachMoneyIcon />
                   <input
+                    name="price"
+                    onChange={handleChangeDescription}
+                    value={formDescription.price}
                     type="number"
                     style={{
                       padding: "10px",
@@ -631,6 +721,8 @@ export default function CreateListing() {
                 </>
               </div>
             </>
+            <Button sx={{ mt: 3 }} onClick={handleSubmit}  type="submit" variant="contained">Outlined</Button>
+          
           </div>
         </form>
       </Container>

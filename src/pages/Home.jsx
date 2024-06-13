@@ -2,6 +2,7 @@ import React from 'react'
 import Navbar from '../components/Navbar'
 import Slider from '../components/Slider'
 import Categories from '../components/Category'
+import Lisiting from '../components/Lisiting'
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
       <Navbar/>
       <Slider/>
       <Categories/>
+      <Lisiting/>
     </div>
   )
 }
